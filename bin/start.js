@@ -7,7 +7,6 @@ const { APP_NAME } = require('./constants')
 
 const temp = path.resolve(__dirname, '../temp/')
 const pidFilePath = path.join(temp, 'beauty-json-clipboard.pid')
-const logFilePath = path.join(temp, 'log.log')
 const outFilePath = path.join(temp, 'out.log')
 const errorFilePath = path.join(temp, 'error.log')
 
@@ -18,7 +17,6 @@ function createTempFiles() {
 
     try {
         fs.writeFileSync(pidFilePath, '', { flag: 'wx' });
-        fs.writeFileSync(logFilePath, '', { flag: 'wx' });
         fs.writeFileSync(outFilePath, '', { flag: 'wx' });
         fs.writeFileSync(errorFilePath, '', { flag: 'wx' });
     } catch(e){
