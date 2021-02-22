@@ -3,7 +3,6 @@ Listen for any JSON in the clipboard and replace it with a beautified version  â
 
 ![Demo](https://cdn.loom.com/sessions/thumbnails/822f8d54ff174a9ba911a6cefb9a5ccd-with-play.gif)
 
-
 # Install
 
 ```
