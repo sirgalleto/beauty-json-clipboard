@@ -4,17 +4,24 @@
   "description": "Beautifies a JSON copied to the clipboard, and replaces the clipboard ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "pm2 start lib/index.js ",
+    "stop": "pm2 stop lib/index.js "
   },
   "keywords": [
     "clipboard",
     "JSON",
     "beautify"
   ],
+  "bin": {
+    "beauty-json-clipboard": "bin/index.js"
+  },
   "author": "Sebastián Osorio <svzosorio@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "clipboard-listener": "^0.2.3",
-    "clipboardy": "^2.3.0"
+    "clipboardy": "^2.3.0",
+    "commander": "^7.1.0",
+    "pm2": "^4.5.4"
   }
 }
