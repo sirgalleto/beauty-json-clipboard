@@ -32,7 +32,6 @@ function onSuccess() {
 
 function onError(error) {
     pm2.disconnect()
-
     if (error.message) {
         console.log(error.message)
     } else {
@@ -40,46 +39,56 @@ function onError(error) {
     }
 }
 
+function run(options) {
+    const { autoStart } = options
+
+    createTempFiles()
+
+    pm2.start(path.resolve(__dirname, '../lib/index.js'), {
+        name: APP_NAME,
+        pid: pidFilePath,
+        output: outFilePath,
+        error: errorFilePath,
+        interpreter: 'node',
+        instances: 1,
+        autorestart: false
+    }, (error) => {
+        if (error) {
+            if (error.message === 'Script already launched') {
+                pm2.stop(APP_NAME, () => {
+                    run(options)
+                })
+                return
+            }
+            onError(error)
+            return
+        }
+
+        if (!autoStart) {
+            onSuccess()
+            return
+        }
+
+        if (process.getuid() != 0) {
+            onError(new Error('You need to execute this with more rights'))
+            return
+        }
+
+        pm2.startup(process.platform, {}, (error) => {
+            if (error) {
+                pm2.stop(APP_NAME, () => {
+                    onError(error)
+                })
+                return
+            }
+
+            onSuccess()
+        })
+    });
+}
+
 program
     .command('start')
     .description('start listening from clipboard')
     .option('-a, --auto-start', 'auto start when computer starts (needs permissions)')
-    .action((options) => {
-        const { autoStart } = options
-
-        createTempFiles()
-
-        pm2.start(path.resolve(__dirname, '../lib/index.js'), {
-            name: APP_NAME,
-            pid: pidFilePath,
-            output: outFilePath,
-            error: errorFilePath,
-            interpreter: 'node',
-            instances: 1,
-            autorestart: false
-        }, (error) => {
-            if(error) {
-                onError(error)
-                return 
-            }
-
-            if(!autoStart) {
-                onSuccess()
-                return 
-            }
-
-            if (process.getuid() != 0) {
-                onError(new Error('You need to execute this with more rights'))
-                return
-            }
-
-            pm2.startup(process.platform, {}, (error) => {
-                if (error) {
-                    onError(error)
-                    return
-                }
-
-                onSuccess()
-            })
-        });
-});
+    .action(run);
