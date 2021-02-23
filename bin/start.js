@@ -1,4 +1,5 @@
 const { program } = require('commander');
+const { promisify } = require('util');
 var pm2 = require('pm2');
 const path = require('path')
 const fs = require('fs')
@@ -24,10 +25,28 @@ function createTempFiles() {
     }
 }
 
+function onSuccess() {
+    pm2.disconnect()
+    console.log('✨ I am ready to beautify your clipboard\'s JSONs')
+}
+
+function onError(error) {
+    pm2.disconnect()
+
+    if (error.message) {
+        console.log(error.message)
+    } else {
+        console.log('I had an unexpected error 😅')
+    }
+}
+
 program
     .command('start')
     .description('start listening from clipboard')
-    .action(() => {
+    .option('-a, --auto-start', 'auto start when computer starts (needs permissions)')
+    .action((options) => {
+        const { autoStart } = options
+
         createTempFiles()
 
         pm2.start(path.resolve(__dirname, '../lib/index.js'), {
@@ -38,8 +57,29 @@ program
             interpreter: 'node',
             instances: 1,
             autorestart: false
-        }, () => {
-            pm2.disconnect()
-                console.log('✨ I am ready to beautify your clipboard\'s JSONs')
+        }, (error) => {
+            if(error) {
+                onError(error)
+                return 
+            }
+
+            if(!autoStart) {
+                onSuccess()
+                return 
+            }
+
+            if (process.getuid() != 0) {
+                onError(new Error('You need to execute this with more rights'))
+                return
+            }
+
+            pm2.startup(process.platform, {}, (error) => {
+                if (error) {
+                    onError(error)
+                    return
+                }
+
+                onSuccess()
+            })
         });
 });
